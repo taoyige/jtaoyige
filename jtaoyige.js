@@ -10,12 +10,87 @@ jtaoyige 最终框架
 		return taoyige.$all(selector);
 	}
 
+	
+	/**
+	 * 封装ajax
+     * data = {
+     *   'method': 'GET',
+     *   'asyn': 'true',
+     *   'url': url,
+     *   'params': params,
+     *   'dataType': 'json',
+     *   'success': function(){},
+     *   'error': function(){},
+     * 
+     * } 
+	 */
+    $$.ajax = function (data) {
+            console.log(data);
+            var method = data.method ? data.method : 'GET';
+            var asyn = data.asyn ? data.asyn : true;
+            var url = data.url;
+            var param = data.params ? paramsAdapter(data.params) : '';
+            var dataType = data.dataType ? data.dataType : '';
+            var success = data.success ? data.success : function () {};
+            var error = data.error ? data.error : function () {};
+  
+            var xhr = null;
+  
+            try{
+              xhr = new XMLHttpRequest();
+            }catch(e){
+              xhr = new ActiveXObject('Microsoft.XMLHTTP');
+            }
+  
+            if(method.toUpperCase() == "GET"){
+              url += '?' + param;
+              xhr.open('GET', url, asyn);
+              xhr.send(null);
+            }else {
+              xhr.open('POST', url, asyn);
+              xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+              xhr.send(param);
+            }
+  
+            xhr.onreadystatechange = function(){
+              if(this.readyState == 4){
+                if(this.status == 200){
+                  var txt = this.responseText;
+                  console.log(txt);
+                  if(dataType.toUpperCase() === 'JSON'){
+                    success(toJson(txt));
+                  }else {
+                    success(txt);
+                  }
+                }else {
+                  error(this.responseText);
+                }
+              }
+            };
+  
+  
+            /** 转换参数适配器 */
+            function paramsAdapter(params) {
+              var param = '';
+              for(var k in params){
+                param += k + '=' + params[k] + '&';
+              }
+              param += '_t' + '=' + +new Date();
+              return param;
+            }
+  
+            /** json适配器 */
+            function toJson(str) {
+              return JSON.parse(str);
+            }
+    }
+
 
 	/* 实现类 Taoyige 底层操作类 */
 	function Taoyige() {
 
 		/* 版本号 */
-		var version = '1.0.0';
+		var version = '1.0.1';
 
 
 		/* DOM元素数组 */
